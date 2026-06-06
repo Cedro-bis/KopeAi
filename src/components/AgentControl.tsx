@@ -84,8 +84,8 @@ export const AgentControl: React.FC<AgentControlProps> = ({ onAgentComplete }) =
                 id="agent-type-job"
                 type="button"
                 onClick={() => setType("job")}
-                className={`flex-1 border-2 border-black py-2 text-xs font-mono uppercase font-bold transition-all ${
-                  type === "job" ? "bg-black text-white" : "bg-white text-black hover:bg-neutral-150"
+                className={`flex-1 py-2 text-xs font-mono uppercase font-bold rounded shadow-md transition-all border-none ${
+                  type === "job" ? "bg-neutral-200 text-black shadow-inner" : "bg-white text-black hover:bg-neutral-100"
                 }`}
               >
                 Offres d'emploi
@@ -94,8 +94,8 @@ export const AgentControl: React.FC<AgentControlProps> = ({ onAgentComplete }) =
                 id="agent-type-scholarship"
                 type="button"
                 onClick={() => setType("scholarship")}
-                className={`flex-1 border-2 border-black py-2 text-xs font-mono uppercase font-bold transition-all ${
-                  type === "scholarship" ? "bg-black text-white" : "bg-white text-black hover:bg-neutral-150"
+                className={`flex-1 py-2 text-xs font-mono uppercase font-bold rounded shadow-md transition-all border-none ${
+                  type === "scholarship" ? "bg-neutral-200 text-black shadow-inner" : "bg-white text-black hover:bg-neutral-100"
                 }`}
               >
                 Bourses d'études
@@ -113,8 +113,8 @@ export const AgentControl: React.FC<AgentControlProps> = ({ onAgentComplete }) =
                   key={src}
                   type="button"
                   onClick={() => setSource(src)}
-                  className={`flex-1 border border-black py-2 text-xs font-mono uppercase font-bold transition-all ${
-                    source === src ? "bg-black text-white font-black" : "bg-white text-black hover:bg-neutral-150"
+                  className={`flex-1 py-2 text-xs font-mono uppercase font-bold rounded shadow-md transition-all border-none ${
+                    source === src ? "bg-neutral-200 text-black shadow-inner font-black" : "bg-white text-black hover:bg-neutral-100"
                   }`}
                 >
                   {src}
@@ -149,8 +149,8 @@ export const AgentControl: React.FC<AgentControlProps> = ({ onAgentComplete }) =
                 key={p}
                 type="button"
                 onClick={() => setDomain(p)}
-                className={`border border-black px-2.5 py-1 text-xs font-mono transition-all ${
-                  domain === p ? "bg-neutral-200 text-black border-2 font-bold" : "bg-white text-black hover:bg-neutral-150"
+                className={`px-2.5 py-1 text-xs font-mono transition-all rounded shadow-md border-none cursor-pointer ${
+                  domain === p ? "bg-neutral-200 text-black font-bold" : "bg-white text-black hover:bg-neutral-100"
                 }`}
               >
                 {p}
@@ -186,7 +186,7 @@ export const AgentControl: React.FC<AgentControlProps> = ({ onAgentComplete }) =
             id="btn-trigger-agent"
             type="submit"
             disabled={isRunning}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 border-2 border-black bg-black text-white hover:bg-neutral-150 disabled:bg-neutral-300 disabled:text-neutral-500 disabled:border-neutral-300 transition-colors uppercase font-mono text-sm px-6 py-3 font-bold shadow-md cursor-pointer"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 border-none bg-white text-black hover:bg-neutral-100 disabled:bg-neutral-100 disabled:text-neutral-400 disabled:shadow-none transition-all uppercase font-mono text-sm px-6 py-3 font-bold shadow-md hover:shadow-lg rounded cursor-pointer"
           >
             {isRunning ? (
               <>

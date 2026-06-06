@@ -98,7 +98,7 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({
               <button
                 id={`approve-btn-${opportunity.id}`}
                 onClick={() => onApprove(opportunity.id)}
-                className="bg-white text-black hover:bg-neutral-200 border border-black text-xs font-mono px-3 py-1.5 uppercase transition-colors shadow-sm duration-100"
+                className="bg-white text-black hover:bg-neutral-100 border-none rounded text-xs font-mono px-3 py-1.5 uppercase transition-all shadow-md hover:shadow-lg duration-200 cursor-pointer"
               >
                 Publier
               </button>
@@ -107,7 +107,7 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({
               <button
                 id={`reject-btn-${opportunity.id}`}
                 onClick={() => onReject(opportunity.id)}
-                className="bg-white text-black hover:bg-neutral-200 border border-black text-xs font-mono px-3 py-1.5 uppercase transition-colors shadow-sm duration-100"
+                className="bg-white text-black hover:bg-neutral-100 border-none rounded text-xs font-mono px-3 py-1.5 uppercase transition-all shadow-md hover:shadow-lg duration-200 cursor-pointer"
               >
                 Rejeter
               </button>
@@ -116,7 +116,7 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({
               <button
                 id={`edit-btn-${opportunity.id}`}
                 onClick={() => onEditClick(opportunity)}
-                className="bg-white text-black hover:bg-neutral-200 border border-black text-xs font-mono px-2 py-1.5 uppercase transition-colors shadow-sm duration-100 flex items-center justify-center"
+                className="bg-white text-black hover:bg-neutral-100 border-none rounded text-xs font-mono px-2 py-1.5 uppercase transition-all shadow-md hover:shadow-lg duration-200 flex items-center justify-center cursor-pointer"
                 title="Modifier"
               >
                 Éditer
@@ -126,7 +126,7 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({
               <button
                 id={`delete-btn-${opportunity.id}`}
                 onClick={() => onDelete(opportunity.id)}
-                className="bg-white text-black hover:bg-neutral-200 border border-black text-xs font-mono px-2 py-1.5 uppercase transition-colors shadow-sm duration-100 flex items-center justify-center"
+                className="bg-white text-black hover:bg-neutral-100 border-none rounded text-xs font-mono px-2 py-1.5 uppercase transition-all shadow-md hover:shadow-lg duration-200 flex items-center justify-center cursor-pointer"
                 title="Supprimer"
               >
                 Supprimer

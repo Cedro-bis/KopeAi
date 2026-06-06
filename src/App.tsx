@@ -334,7 +334,7 @@ export default function App() {
               <button 
                 id="btn-goto-jobs"
                 onClick={() => setCurrentView('jobs')}
-                className="bg-white border-2 border-black text-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:bg-neutral-200 hover:translate-x-[4px] hover:translate-y-[4px] transition-all duration-200 px-8 py-6 rounded-none font-bold flex flex-col items-center gap-1.5 min-w-[280px] text-center cursor-pointer"
+                className="bg-white border-none text-black shadow-md hover:shadow-lg hover:bg-neutral-100 transition-all duration-200 px-8 py-6 rounded font-bold flex flex-col items-center gap-1.5 min-w-[280px] text-center cursor-pointer"
               >
                 <span className="text-xl">Offres d'Emplois</span>
                 <span className="text-[10px] uppercase tracking-widest opacity-60 font-mono">Consulter par domaines</span>
@@ -344,7 +344,7 @@ export default function App() {
               <button 
                 id="btn-goto-scholarships"
                 onClick={() => setCurrentView('scholarships')}
-                className="bg-white border-2 border-black text-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:bg-neutral-200 hover:translate-x-[4px] hover:translate-y-[4px] transition-all duration-200 px-8 py-6 rounded-none font-bold flex flex-col items-center gap-1.5 min-w-[280px] text-center cursor-pointer"
+                className="bg-white border-none text-black shadow-md hover:shadow-lg hover:bg-neutral-100 transition-all duration-200 px-8 py-6 rounded font-bold flex flex-col items-center gap-1.5 min-w-[280px] text-center cursor-pointer"
               >
                 <span className="text-xl">Bourses d'Études</span>
                 <span className="text-[10px] uppercase tracking-widest opacity-60 font-mono">Découvrir les programmes</span>
@@ -356,7 +356,7 @@ export default function App() {
             <div className="mt-16 pt-8 border-t border-neutral-100 w-full flex justify-center">
               <button
                 onClick={() => setIsAdminMode(true)}
-                className="bg-white border border-black text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-neutral-200 hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none transition-all px-4 py-2 font-mono text-xs uppercase"
+                className="bg-white border-none text-black shadow-md hover:shadow-lg hover:bg-neutral-100 transition-all px-4 py-2 font-mono text-xs uppercase rounded cursor-pointer"
               >
                 🔑 Entrer dans l'espace Administration
               </button>
@@ -373,7 +373,7 @@ export default function App() {
               <div>
                 <button
                   onClick={() => setCurrentView('home')}
-                  className="bg-white border border-black text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-neutral-200 hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] transition-all px-3 py-1.5 text-xs font-mono uppercase mb-4 inline-flex items-center gap-1.5"
+                  className="bg-white border-none text-black shadow-md hover:shadow-lg hover:bg-neutral-100 transition-all px-3 py-1.5 text-xs font-mono uppercase mb-4 inline-flex items-center gap-1.5 rounded cursor-pointer"
                 >
                   [&lt;-] Retour
                 </button>
@@ -401,10 +401,10 @@ export default function App() {
                 <button
                   id="domain-filter-all"
                   onClick={() => setSelectedDomain(null)}
-                  className={`border border-black px-4 py-2 text-xs font-mono uppercase cursor-pointer transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
+                  className={`px-4 py-2 text-xs font-mono uppercase cursor-pointer transition-all border-none rounded ${
                     selectedDomain === null 
-                      ? "bg-black text-white" 
-                      : "bg-white text-black hover:bg-neutral-200 hover:shadow-none hover:translate-y-[1px]"
+                      ? "bg-neutral-200 text-black shadow-inner font-bold" 
+                      : "bg-white text-black shadow-md hover:shadow-lg hover:bg-neutral-100"
                   }`}
                 >
                   Tous les domaines ({currentView === 'jobs' ? allJobOpportunities.filter(o => o.status === 'approved').length : allScholarshipOpportunities.filter(o => o.status === 'approved').length})
@@ -418,10 +418,10 @@ export default function App() {
                       id={`domain-filter-${domainName}`}
                       key={domainName}
                       onClick={() => setSelectedDomain(domainName)}
-                      className={`border border-black px-4 py-2 text-xs font-mono uppercase cursor-pointer transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
+                      className={`px-4 py-2 text-xs font-mono uppercase cursor-pointer transition-all border-none rounded ${
                         selectedDomain === domainName 
-                          ? "bg-black text-white" 
-                          : "bg-white text-black hover:bg-neutral-200 hover:shadow-none hover:translate-y-[1px]"
+                          ? "bg-neutral-200 text-black shadow-inner font-bold" 
+                          : "bg-white text-black shadow-md hover:shadow-lg hover:bg-neutral-100"
                       }`}
                     >
                       {domainName} ({count})
@@ -444,7 +444,7 @@ export default function App() {
                 </p>
                 <button
                   onClick={() => setSelectedDomain(null)}
-                  className="bg-white border border-black text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:bg-neutral-200 hover:shadow-none transition-all px-4 py-2 font-mono text-xs uppercase"
+                  className="bg-white text-black hover:bg-neutral-100 shadow-md hover:shadow-lg transition-all px-4 py-2 font-mono text-xs uppercase border-none rounded cursor-pointer"
                 >
                   Voir tous les domaines
                 </button>
@@ -465,7 +465,7 @@ export default function App() {
             <div className="pt-10 flex justify-center">
               <button
                 onClick={() => { setCurrentView('home'); }}
-                className="bg-white border border-black text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-neutral-200 hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all px-6 py-3 font-mono text-sm uppercase font-bold text-center"
+                className="bg-white text-black hover:bg-neutral-100 shadow-md hover:shadow-lg transition-all px-6 py-3 font-mono text-sm uppercase font-bold text-center border-none rounded cursor-pointer"
               >
                 Retour à la page d'accueil
               </button>
@@ -495,13 +495,13 @@ export default function App() {
                 <button
                   id="btn-admin-add-manual"
                   onClick={openCreateForm}
-                  className="bg-white border border-black text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:bg-neutral-200 hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] transition-all px-4 py-2 font-mono text-xs uppercase flex items-center gap-1.5 font-bold cursor-pointer"
+                  className="bg-white text-black hover:bg-neutral-100 shadow-md hover:shadow-lg transition-all px-4 py-2 font-mono text-xs uppercase flex items-center gap-1.5 font-bold border-none rounded cursor-pointer"
                 >
                   [+] Saisie manuelle
                 </button>
                 <button
                   onClick={() => { setIsAdminMode(false); setCurrentView('home'); }}
-                  className="bg-white border border-black text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:bg-neutral-200 hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] transition-all px-4 py-2 font-mono text-xs uppercase cursor-pointer"
+                  className="bg-white text-black hover:bg-neutral-100 shadow-md hover:shadow-lg transition-all px-4 py-2 font-mono text-xs uppercase border-none rounded cursor-pointer"
                 >
                   Fermer Panel
                 </button>
@@ -652,7 +652,7 @@ export default function App() {
               <button 
                 id="btn-close-form"
                 onClick={closeForm}
-                className="text-black hover:bg-neutral-100 p-2 rounded-none cursor-pointer border border-black/10 font-bold"
+                className="text-black hover:bg-neutral-100 p-2 rounded cursor-pointer border-none font-bold"
               >
                 [X]
               </button>
@@ -793,14 +793,14 @@ export default function App() {
                   id="btn-cancel-form"
                   type="button"
                   onClick={closeForm}
-                  className="border border-black bg-white text-black hover:bg-neutral-200 transition-all font-bold px-4 py-2 uppercase cursor-pointer"
+                  className="bg-white text-black hover:bg-neutral-100 shadow-md hover:shadow-lg transition-all font-bold px-4 py-2 uppercase border-none rounded cursor-pointer"
                 >
                   Annuler
                 </button>
                 <button
                   id="btn-submit-form"
                   type="submit"
-                  className="bg-black text-white hover:bg-neutral-800 border border-black transition-all font-bold px-6 py-2 uppercase cursor-pointer"
+                  className="bg-white text-black hover:bg-neutral-100 shadow-md hover:shadow-lg transition-all font-bold px-6 py-2 uppercase border-none rounded cursor-pointer"
                 >
                   {editingOpp ? "Enregistrer les modifications" : "Créer et Publier"}
                 </button>
