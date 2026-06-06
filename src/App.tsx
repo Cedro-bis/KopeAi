@@ -12,6 +12,128 @@ export default function App() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Admin Security & Management States
+  const [adminEmailInput, setAdminEmailInput] = useState<string>("");
+  const [currentAdminEmail, setCurrentAdminEmail] = useState<string | null>(() => {
+    return localStorage.getItem("kopeai_admin_email");
+  });
+  const [adminLoginError, setAdminLoginError] = useState<string | null>(null);
+  const [adminList, setAdminList] = useState<string[]>([]);
+  const [newAdminEmailInput, setNewAdminEmailInput] = useState<string>("");
+  const [adminListError, setAdminListError] = useState<string | null>(null);
+  const [adminListSuccess, setAdminListSuccess] = useState<string | null>(null);
+
+  const fetchAdmins = async () => {
+    try {
+      const res = await fetch("/api/admins");
+      if (res.ok) {
+        const data = await res.json();
+        setAdminList(data);
+      }
+    } catch (err) {
+      console.error("Error fetching admins:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (isAdminMode && currentAdminEmail) {
+      fetchAdmins();
+    }
+  }, [isAdminMode, currentAdminEmail]);
+
+  const handleAdminLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAdminLoginError(null);
+    if (!adminEmailInput.trim()) {
+      setAdminLoginError("L'adresse email est requise.");
+      return;
+    }
+    try {
+      const res = await fetch("/api/admins/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: adminEmailInput }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setCurrentAdminEmail(data.email);
+        localStorage.setItem("kopeai_admin_email", data.email);
+        setAdminEmailInput("");
+      } else {
+        setAdminLoginError(data.error || "Une erreur est survenue.");
+      }
+    } catch (err) {
+      console.error(err);
+      setAdminLoginError("Erreur de connexion au serveur.");
+    }
+  };
+
+  const handleAdminLogout = () => {
+    setCurrentAdminEmail(null);
+    localStorage.removeItem("kopeai_admin_email");
+    setAdminLoginError(null);
+    setIsAdminMode(false);
+  };
+
+  const handleAddAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAdminListError(null);
+    setAdminListSuccess(null);
+    const emailToAdd = newAdminEmailInput.trim();
+    if (!emailToAdd) {
+      setAdminListError("Veuillez saisir une adresse email.");
+      return;
+    }
+    try {
+      const res = await fetch("/api/admins", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: emailToAdd }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setNewAdminEmailInput("");
+        setAdminListSuccess(`L'administrateur "${emailToAdd}" a été enregistré.`);
+        fetchAdmins();
+      } else {
+        setAdminListError(data.error || "Impossible d'enregistrer cet administrateur.");
+      }
+    } catch (err) {
+      console.error(err);
+      setAdminListError("Erreur réseau ou serveur.");
+    }
+  };
+
+  const handleDeleteAdmin = async (emailToDelete: string) => {
+    if (emailToDelete.toLowerCase() === "cebistmus@gmail.com") {
+      alert("Impossible de supprimer le compte administrateur racine (cebistmus@gmail.com).");
+      return;
+    }
+    if (!window.confirm(`Souhaitez-vous vraiment retirer l'accès administrateur à ${emailToDelete} ?`)) {
+      return;
+    }
+    setAdminListError(null);
+    setAdminListSuccess(null);
+    try {
+      const res = await fetch(`/api/admins/${encodeURIComponent(emailToDelete)}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setAdminListSuccess(`L'accès administrateur a été retiré pour ${emailToDelete}.`);
+        fetchAdmins();
+        if (currentAdminEmail && currentAdminEmail.toLowerCase() === emailToDelete.toLowerCase()) {
+          handleAdminLogout();
+        }
+      } else {
+        setAdminListError(data.error || "Impossible de supprimer cet administrateur.");
+      }
+    } catch (err) {
+      console.error(err);
+      setAdminListError("Erreur réseau ou serveur.");
+    }
+  };
+
   // Form states for creating/editing opportunity
   const [isFormOpen, setIsFormOpen] = useState<boolean>(false);
   const [editingOpp, setEditingOpp] = useState<Opportunity | null>(null);
@@ -474,21 +596,86 @@ export default function App() {
         )}
 
         {/* VIEW 4: ADMIN MODULE (Everything in one scrollable page layout) */}
-        {isAdminMode && (
+        {isAdminMode && !currentAdminEmail && (
+          <div className="max-w-md mx-auto py-12 p-8 bg-neutral-50 rounded-xl shadow-lg animate-fadeIn border border-neutral-100 text-center space-y-6">
+            <span className="text-[10px] bg-black text-white px-3 py-1 rounded font-mono font-bold uppercase tracking-widest block w-max mx-auto">
+              ACCÈS RESTREINT
+            </span>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-black text-black uppercase tracking-tight">Administration KopeAI</h2>
+              <p className="text-xs text-neutral-600 leading-relaxed">
+                Veuillez saisir votre adresse email autorisée pour accéder à la console de contrôle et valider la publication des offres.
+              </p>
+            </div>
+
+            <form onSubmit={handleAdminLogin} className="space-y-4">
+              <div className="text-left space-y-1">
+                <label className="text-xs font-mono font-bold text-neutral-700 uppercase" htmlFor="admin-email">
+                  Adresse email :
+                </label>
+                <input
+                  id="admin-email"
+                  type="email"
+                  placeholder="votre-nom@exemple.com"
+                  value={adminEmailInput}
+                  onChange={(e) => setAdminEmailInput(e.target.value)}
+                  className="w-full border border-neutral-300 p-2.5 text-sm bg-white text-black outline-none focus:ring-1 focus:ring-black rounded transition-all"
+                  required
+                />
+              </div>
+
+              {adminLoginError && (
+                <div className="p-3 border border-red-200 bg-red-50 text-red-700 text-xs text-left font-sans rounded">
+                  ⚠️ {adminLoginError}
+                </div>
+              )}
+
+              <div className="pt-2 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsAdminMode(false)}
+                  className="flex-1 bg-white text-black hover:bg-neutral-100 shadow-md transition-all uppercase font-mono text-xs font-bold py-2.5 px-4 rounded border-none cursor-pointer"
+                >
+                  Retour
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 bg-black text-white hover:bg-neutral-800 shadow-md hover:shadow-lg transition-all uppercase font-mono text-xs font-bold py-2.5 px-4 rounded border-none cursor-pointer"
+                >
+                  Se connecter
+                </button>
+              </div>
+            </form>
+
+            <div className="text-[10px] text-neutral-400 font-mono italic">
+              L'administrateur principal de KopeAI est pré-configuré par défaut.
+            </div>
+          </div>
+        )}
+
+        {isAdminMode && currentAdminEmail && (
           <div className="space-y-8 animate-fadeIn">
             
             {/* Admin Banner & Heading */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-6 border-b-2 border-black">
               <div>
-                <span className="text-[10px] bg-black text-white px-2.5 py-0.5 rounded font-mono font-bold uppercase tracking-widest">
-                  CONSOLE DE CONTRÔLE ET MODÉRATION
+                <span className="text-[10px] bg-black text-white px-2.5 py-0.5 rounded font-mono font-bold uppercase tracking-widest animate-pulse">
+                  CONSOLE DE CONTRÔLE ET MODÉRATION [KopeAI]
                 </span>
-                <h2 className="text-3xl font-black text-black tracking-tight mt-1">
-                  GESTION DU SYSTÈME AUTOMATISÉ
+                <h2 className="text-2xl font-black text-black tracking-tight mt-1 uppercase">
+                  Gestion du Système Automatisé
                 </h2>
-                <p className="text-xs font-mono text-neutral-500 mt-1">
-                  Analysez et validez les opportunités détectées par les agents Gemini et configurez la publication.
-                </p>
+                <div className="flex flex-wrap items-center gap-2 mt-1">
+                  <span className="text-xs bg-emerald-50 text-emerald-800 border-none font-mono font-bold px-2.5 py-0.5 rounded">
+                    Admin connecté : {currentAdminEmail}
+                  </span>
+                  <button 
+                    onClick={handleAdminLogout}
+                    className="text-xs text-red-600 hover:text-red-800 font-mono tracking-tighter underline border-none bg-transparent cursor-pointer"
+                  >
+                    [Se déconnecter]
+                  </button>
+                </div>
               </div>
 
               <div className="flex flex-wrap gap-2">
@@ -552,6 +739,81 @@ export default function App() {
             <div className="border border-black p-2 bg-neutral-100/30">
               <AgentControl onAgentComplete={handleAgentComplete} />
             </div>
+
+            {/* TEAM ADMINISTRATOR MANAGEMENT PANEL */}
+            <section id="admin-management-panel" className="bg-neutral-50/50 border border-black p-6 space-y-4">
+              <div className="border-b border-black/10 pb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <div>
+                  <h3 className="text-md font-bold uppercase tracking-tight text-black">
+                    🛡️ Équipe d'Administration KopeAI
+                  </h3>
+                  <p className="text-[11px] text-neutral-500 font-sans">
+                    Ajoutez ou retirez des collaborateurs autorisés à inspecter et approuver les offres d'emploi ou bourses.
+                  </p>
+                </div>
+                <span className="text-xs font-mono font-bold bg-neutral-200 px-2 py-0.5 rounded text-black shrink-0">
+                  {adminList.length} administrateur(s) enregistré(s)
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-2">
+                {/* Add admin form */}
+                <form onSubmit={handleAddAdmin} className="space-y-3 bg-white p-4 border border-black/10 rounded">
+                  <h4 className="text-xs font-mono font-bold text-neutral-700 uppercase tracking-wider">
+                    + Enregistrer un nouvel administrateur :
+                  </h4>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <input
+                      type="email"
+                      placeholder="nom.prenom@exemple.com"
+                      value={newAdminEmailInput}
+                      onChange={(e) => setNewAdminEmailInput(e.target.value)}
+                      className="flex-1 text-xs border border-neutral-300 px-3 py-2 bg-white text-black outline-none focus:ring-1 focus:ring-black rounded font-sans"
+                    />
+                    <button
+                      type="submit"
+                      className="bg-black text-white hover:bg-neutral-800 transition-all font-mono text-xs uppercase font-bold py-2 px-4 border-none rounded cursor-pointer shrink-0"
+                    >
+                      Enregistrer
+                    </button>
+                  </div>
+                  {adminListError && (
+                    <p className="text-xs text-red-600 font-mono mt-1">⚠️ {adminListError}</p>
+                  )}
+                  {adminListSuccess && (
+                    <p className="text-xs text-emerald-600 font-mono mt-1">✓ {adminListSuccess}</p>
+                  )}
+                </form>
+
+                {/* Admins listing */}
+                <div className="space-y-3">
+                  <h4 className="text-xs font-mono font-bold text-neutral-700 uppercase tracking-wider">
+                    Utilisateurs autorisés :
+                  </h4>
+                  <div className="border border-neutral-300 bg-white rounded divide-y divide-neutral-100 max-h-36 overflow-y-auto">
+                    {adminList.map((adminEmail) => {
+                      const isRoot = adminEmail.toLowerCase() === "cebistmus@gmail.com";
+                      return (
+                        <div key={adminEmail} className="flex justify-between items-center px-3 py-1.5 text-xs font-mono">
+                          <span className="text-neutral-800 truncate" title={adminEmail}>
+                            👤 {adminEmail} {isRoot && " (Root Admin)"}
+                          </span>
+                          {!isRoot && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteAdmin(adminEmail)}
+                              className="text-[10px] text-red-600 hover:text-red-800 font-mono tracking-tighter uppercase font-bold bg-transparent border-none p-1 shrink-0 cursor-pointer hover:underline"
+                            >
+                              [Retirer]
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </section>
 
             {/* LIST OF MODERATON INBOX */}
             <div className="space-y-4">

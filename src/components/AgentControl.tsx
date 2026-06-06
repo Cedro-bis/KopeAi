@@ -12,6 +12,7 @@ export const AgentControl: React.FC<AgentControlProps> = ({ onAgentComplete }) =
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [successCount, setSuccessCount] = useState<number | null>(null);
+  const [warningMsg, setWarningMsg] = useState<string | null>(null);
 
   // Common preset domains
   const DOMAIN_PRESETS = [
@@ -35,6 +36,7 @@ export const AgentControl: React.FC<AgentControlProps> = ({ onAgentComplete }) =
     setIsRunning(true);
     setError(null);
     setSuccessCount(null);
+    setWarningMsg(null);
 
     try {
       const response = await fetch("/api/agents/run", {
@@ -50,6 +52,7 @@ export const AgentControl: React.FC<AgentControlProps> = ({ onAgentComplete }) =
       }
 
       setSuccessCount(data.count || 0);
+      setWarningMsg(data.warning || null);
       if (data.results) {
         onAgentComplete(data.results);
       }
@@ -62,9 +65,9 @@ export const AgentControl: React.FC<AgentControlProps> = ({ onAgentComplete }) =
   };
 
   return (
-    <div id="ai-agent-control" className="border-2 border-black p-6 bg-white shadow-sm mb-8">
-      <div className="flex items-center gap-2 mb-4 border-b border-black pb-3">
-        <span className="text-xs font-mono font-bold border border-black px-1 py-0.5 bg-neutral-100">[AGENT IA]</span>
+    <div id="ai-agent-control" className="p-6 bg-neutral-50 rounded-xl shadow-md mb-8">
+      <div className="flex items-center gap-2 mb-4 border-b border-neutral-200 pb-3">
+        <span className="text-[10px] font-mono font-bold px-2 py-0.5 bg-neutral-200 text-neutral-800 rounded">[AGENT IA]</span>
         <h3 className="text-lg font-bold uppercase tracking-tight text-black">
           Lancer l'Agent IA d'opportunités
         </h3>
@@ -161,21 +164,30 @@ export const AgentControl: React.FC<AgentControlProps> = ({ onAgentComplete }) =
 
         {/* Feedback Messages */}
         {error && (
-          <div className="border border-black p-3 bg-white text-red-600 text-xs font-mono">
+          <div className="p-4 bg-red-50 text-red-700 text-xs font-sans rounded-lg">
             <div>
-              <p className="font-bold uppercase mb-1 border-b border-red-200 pb-1">[ERREUR DE L'AGENT IA]</p>
-              <p>{error}</p>
-              <p className="mt-2 text-[10px] text-neutral-500">
-                Avez-vous configuré votre clé d'API dans de le panneau de secrets de Google AI Studio (bouton d'engrenage / Secrets) ?
+              <p className="font-bold uppercase font-mono mb-1 border-b border-red-200 pb-1">⚠️ [ERREUR DE L'AGENT IA]</p>
+              <p className="mt-1 font-mono">{error}</p>
+              <p className="mt-2 text-[10px] text-neutral-500 font-mono">
+                Conseil : Si vous voyez des erreurs répétées, vérifiez vos quotas d'API suite aux limites imposées par Google AI Studio.
               </p>
             </div>
           </div>
         )}
 
+        {warningMsg && (
+          <div className="p-4 bg-amber-50 border border-amber-200/50 text-amber-800 text-xs font-sans rounded-lg">
+            <div className="space-y-1.5">
+              <p className="font-bold uppercase font-mono tracking-tight text-amber-900">🔔 [RECHERCHE SÉCURISÉE DE SECOURS]</p>
+              <p className="leading-relaxed font-mono text-[11px]">{warningMsg}</p>
+            </div>
+          </div>
+        )}
+
         {successCount !== null && (
-          <div className="border border-black p-3 bg-white text-black text-xs font-mono">
-            <div>
-              <span className="font-bold">[SUCCESS] :</span> {successCount} nouvelles opportunités extraites et stockées en base de données pour modération.
+          <div className="p-4 bg-emerald-50 text-emerald-800 text-xs font-sans rounded-lg">
+            <div className="font-mono">
+              <span className="font-bold">✨ [SUCCÈS DE L'AGENCE IA] :</span> {successCount} opportunités d'études ou d'emplois ont été extraites et stockées comme brouillon pour modération.
             </div>
           </div>
         )}

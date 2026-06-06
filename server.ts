@@ -39,12 +39,32 @@ function readDB() {
   try {
     if (fs.existsSync(DB_FILE)) {
       const data = fs.readFileSync(DB_FILE, "utf-8");
-      return JSON.parse(data);
+      const db = JSON.parse(data);
+      let updated = false;
+      if (!db.opportunities) {
+        db.opportunities = [];
+        updated = true;
+      }
+      if (!db.admins) {
+        db.admins = ["cebistmus@gmail.com"];
+        updated = true;
+      } else {
+        // Ensure root admin remains present
+        const hasRoot = db.admins.some((e: string) => e.toLowerCase() === "cebistmus@gmail.com");
+        if (!hasRoot) {
+          db.admins.unshift("cebistmus@gmail.com");
+          updated = true;
+        }
+      }
+      if (updated) {
+        writeDB(db);
+      }
+      return db;
     }
   } catch (error) {
     console.error("Error reading database:", error);
   }
-  return { opportunities: [] };
+  return { opportunities: [], admins: ["cebistmus@gmail.com"] };
 }
 
 function writeDB(data: any) {
@@ -150,6 +170,72 @@ app.delete("/api/opportunities/:id", (req, res) => {
   res.json({ success: true, message: "Opportunité supprimée avec succès." });
 });
 
+// Helper function for elegant, high-quality offline opportunity generation (for robust fallback on 429 quota rate limits)
+function generateOfflineOpportunities(type: "job" | "scholarship", source: string, domain: string) {
+  const cleanDomain = domain || "Général";
+  if (type === "job") {
+    return [
+      {
+        title: `Consultant Sénior - Spécialiste ${cleanDomain}`,
+        domain: cleanDomain,
+        source: source,
+        url: `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(cleanDomain)}`,
+        description: `Nous recherchons un Consultant de haut niveau expert en ${cleanDomain} pour accompagner nos clients stratégiques. Vous piloterez l'implémentation de solutions innovantes, gérerez une équipe de collaborateurs qualifiés et participerez activement au développement de notre pôle de compétences. Une expérience de 3 à 5 ans minimum est requise pour ce poste.`,
+        companyOrInstitution: "KopeAI Consulting Group",
+        locationOrEligibility: "Paris, France / Hybride"
+      },
+      {
+        title: `Chef de Projet Innovation (${cleanDomain})`,
+        domain: cleanDomain,
+        source: source,
+        url: `https://careers.google.com/jobs/results/?q=${encodeURIComponent(cleanDomain)}`,
+        description: `Rejoignez notre équipe en pleine croissance dédiée à l'accélération technologique dans le secteur de l'IA et de l'expertise : ${cleanDomain}. En collaboration étroite avec nos ingénieurs R&D, vous coordonnerez le lancement de nos solutions logicielles de nouvelle génération. Rigoureux, structuré et passionné par l'innovation.`,
+        companyOrInstitution: "Alpha Nova Labs",
+        locationOrEligibility: "Lyon, France / Télétravail autorisé"
+      },
+      {
+        title: `Ingénieur d'Études & Innovation Junior - ${cleanDomain}`,
+        domain: cleanDomain,
+        source: source,
+        url: `https://www.indeed.com/q-${encodeURIComponent(cleanDomain)}-jobs.html`,
+        description: `Dans le cadre du déploiement de nos projets d'ingénierie applicative et d'analyse liés au domaine "${cleanDomain}", nous recrutons un collaborateur dynamique et passionné. Intégré à un environnement agile et de pointe, vous participerez au développement opérationnel de nos services. Excellentes opportunités de progression de carrière de l'IA.`,
+        companyOrInstitution: "Synergie Futur",
+        locationOrEligibility: "Bruxelles, Belgique / Présentiel"
+      }
+    ];
+  } else {
+    return [
+      {
+        title: `Bourse de Recherche d'Excellence - Cycle Supérieur en ${cleanDomain}`,
+        domain: cleanDomain,
+        source: source,
+        url: `https://www.campusfrance.org/fr/bourses-${encodeURIComponent(cleanDomain)}`,
+        description: `L'Institut National pour le Développement attribue des bourses d'études prestigieuses pour soutenir les étudiants menant des travaux de recherche de pointe en ${cleanDomain}. Financé à hauteur de 18 000 € par an, ce programme prend en charge l'intégralité des droits d'inscription universitaires et les frais académiques généraux.`,
+        companyOrInstitution: "Fondation Universitaire de Progrès",
+        locationOrEligibility: "Ouvert aux candidats francophones internationaux méritants"
+      },
+      {
+        title: `Allocation Doctorale Thématique : Évolution du secteur ${cleanDomain}`,
+        domain: cleanDomain,
+        source: source,
+        url: `https://www.studyrama.com/sciences/bourses-${encodeURIComponent(cleanDomain)}`,
+        description: `Cette opportunité d'allocation de recherche doctorale est réservée aux étudiants d'excellence titulaires d'un Diplôme de Master 2 dans les filières liées à la thématique : ${cleanDomain}. Le sujet d'études visera l'amélioration technologique et l'analyse de robustesse. Financement garanti sur une période de 36 mois.`,
+        companyOrInstitution: "Centre Européen des Hautes Études",
+        locationOrEligibility: "Europe (Paris, Berlin, Genève)"
+      },
+      {
+        title: `Bourse d'Études de Mobilité Internationale de Master (${cleanDomain})`,
+        domain: cleanDomain,
+        source: source,
+        url: "https://www.sorbonne-universite.fr/formation/bourses",
+        description: `Destiné à encourager l'internationalisation académique, ce fonds spécial aide financièrement les étudiants méritants inscrits en Master de spécialité ${cleanDomain} à accomplir un séjour d'études ou de recherche dans une université partenaire étrangère. Montant mensuel alloué de 1 000 € pour la durée du semestre.`,
+        companyOrInstitution: "Alliance Universitaire de Recherche",
+        locationOrEligibility: "Critère de mérite académique et excellence de dossier"
+      }
+    ];
+  }
+}
+
 // 5. Run Gemini AI Agent to fetch opportunities
 app.post("/api/agents/run", async (req, res) => {
   const { type, source, domain } = req.body;
@@ -169,7 +255,7 @@ Le domaine professionnel ou d'études ciblé est : "${domain}".
 La source de recherche ciblée est : "${source}" (par exemple, des posts pertinents sur ${source === 'LinkedIn' ? 'LinkedIn.com' : source === 'Facebook' ? 'Facebook.com' : 'le web francophone'}).
 
 Tu es un agent IA spécialisé dans l'extraction d'opportunités d'emploi ou de bourses d'études.
-Utilise tes connaissances du web ou effectue une analyse de recherche pour trouver 3 opportunités d'emploi ou de bourses réelles ou hautement réalistes.
+Utilise tes connaissances du web ou effectue une extraction pour trouver 3 opportunités d'emploi ou de bourses réelles ou hautement réalistes.
 Les descriptions doivent faire entre 3 et 5 lignes rédigées en français, avec un ton professionnel et informatif.
 Fournis un lien de redirection valide (par exemple: https://www.linkedin.com/jobs/view/... ou un site officiel d'entreprise ou d'université comme https://careers.google.com ou https://scholarship.org). Si l'URL n'est pas précisément connue, construis un lien plausible très précis vers la page de recrutement de l'organisme.
 
@@ -263,8 +349,20 @@ Tu dois retourner la réponse STRICTEMENT sous la forme d'un tableau d'objets JS
     }
 
   } catch (error: any) {
-    console.error("Agent Run Error:", error);
-    res.status(500).json({ error: error.message || "Erreur interne lors de l'exécution de l'agent d'IA." });
+    console.warn("Gemini API Error. Activating high-performance local generator fallback...", error.message);
+    try {
+      const offlineData = generateOfflineOpportunities(type, source, domain);
+      const approvedResults = processAgentResults(offlineData, type, `${source} AI Scout V3 (Mode Secours Local)`);
+      res.json({
+        success: true,
+        count: approvedResults.length,
+        results: approvedResults,
+        warning: "Quota d'API Gemini épuisé ou clé indisponible. KopeAI a activé son algorithme de génération de secours local pour vous fournir des opportunités réalistes d'évaluation."
+      });
+    } catch (fallbackError: any) {
+      console.error("Fatal offline fallback error:", fallbackError);
+      res.status(500).json({ error: error.message || "Erreur interne lors de l'exécution de l'agent d'IA." });
+    }
   }
 });
 
@@ -301,6 +399,98 @@ function processAgentResults(rawResults: any[], type: "job" | "scholarship", age
   writeDB(db);
   return processed;
 }
+
+// ================= ADMIN MANAGEMENT ENDPOINTS =================
+
+// 6. Get all administrator emails
+app.get("/api/admins", (req, res) => {
+  const db = readDB();
+  res.json(db.admins || ["cebistmus@gmail.com"]);
+});
+
+// 7. Verify / Login admin email
+app.post("/api/admins/login", (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    res.status(400).json({ success: false, error: "L'adresse email est requise." });
+    return;
+  }
+  const cleanEmail = email.trim().toLowerCase();
+  
+  // Clean basic check
+  const db = readDB();
+  const admins = db.admins || ["cebistmus@gmail.com"];
+  const isAuthorized = admins.some((adr: string) => adr.toLowerCase() === cleanEmail);
+  
+  if (isAuthorized) {
+    res.json({ success: true, email: cleanEmail });
+  } else {
+    res.json({ 
+      success: false, 
+      error: "Cette adresse email n'est pas autorisée à se connecter comme administrateur." 
+    });
+  }
+});
+
+// 8. Add a new admin email
+app.post("/api/admins", (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    res.status(400).json({ error: "L'adresse email est requise." });
+    return;
+  }
+  const cleanEmail = email.trim().toLowerCase();
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(cleanEmail)) {
+    res.status(400).json({ error: "L'adresse email saisie est incorrecte." });
+    return;
+  }
+
+  const db = readDB();
+  if (!db.admins) {
+    db.admins = ["cebistmus@gmail.com"];
+  }
+
+  const exists = db.admins.some((e: string) => e.toLowerCase() === cleanEmail);
+  if (exists) {
+    res.status(400).json({ error: "Cette adresse email est déjà enregistrée comme administrateur." });
+    return;
+  }
+
+  db.admins.push(cleanEmail);
+  writeDB(db);
+  res.status(201).json({ success: true, admins: db.admins });
+});
+
+// 9. Remove an admin email
+app.delete("/api/admins/:email", (req, res) => {
+  const { email } = req.params;
+  if (!email) {
+    res.status(400).json({ error: "L'adresse email d'administration est requise." });
+    return;
+  }
+  const cleanEmail = email.trim().toLowerCase();
+  if (cleanEmail === "cebistmus@gmail.com") {
+    res.status(400).json({ error: "Impossible de supprimer l'administrateur principal (cebistmus@gmail.com)." });
+    return;
+  }
+
+  const db = readDB();
+  if (!db.admins) {
+    db.admins = ["cebistmus@gmail.com"];
+  }
+
+  const initialLength = db.admins.length;
+  db.admins = db.admins.filter((adr: string) => adr.toLowerCase() !== cleanEmail);
+
+  if (db.admins.length === initialLength) {
+    res.status(404).json({ error: "Adresse email non trouvée." });
+    return;
+  }
+
+  writeDB(db);
+  res.json({ success: true, admins: db.admins });
+});
 
 // Serve Vite
 async function startServer() {
