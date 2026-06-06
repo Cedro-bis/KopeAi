@@ -1,0 +1,6 @@
+{
+  "name": "KopeAI",
+  "description": "Agent d'opportunités d'emplois et de bourses d'études qui extrait des offres du web et des réseaux sociaux grâce à l'IA, avec un système de modération administrateur.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
